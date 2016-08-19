@@ -2,81 +2,70 @@ var http = require( 'http' ),
     socketio = require( 'socket.io' ),
     express = require( 'express' ),
     exec = require( 'child_process' ).exec,
-    Lights = require( './segmentHighlight' ),
+    Config = require( './config' ),
+    segmentHighlight = require( './segmentHighlight' ),
     app = express();
 
 var server,
     io,
-    controlEventName = 'control',
-    segmentKeyName = 'segmentSet',
-    segmentCountKeyName = 'segmentCount',
-    stateModel = function () {
+    stateModel = function stateModelConstructor () {
         var model = {};
-        model[segmentKeyName] = segmentValue;
-        model[segmentCountKeyName] = segmentMaxValue;
+        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = activeSegments;
+        model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = availableSegmentCount;
     
         return model;
     }(),
-    segmentValue = [ 0 ],
-    segmentMaxValue = 24,
-    numOfLEDs = 256,
-    LEDColor = 'ff0a74',
-    start;
+    activeSegments = [ 0 ],
+    // Number of available options, each corresponds to a segment
+    availableSegmentCount = 9,
+    // Total LED count on all connected strips
+    totalLEDCount = 64,
+    segmentLEDCount = Math.floor( 64 / 9 );
 
 initServer();
 
 function initServer () {
     console.log( 'initialising web server...' );
+
     server = http.createServer( app );
     io = socketio.listen( server );
-    server.listen( 80, function handleListen () {
-        // initClient();
-    } );
-}
 
-function initClient () {
-    console.log( 'initializing client' );
-    // add this to silence: > /dev/null 2>&1
-    exec('node client.js', function handleExec ( error, stdout, stderr ) {
-        if (stdout !== null) { console.log('stdout: ' + stdout); }
-        if (stdout !== null) { console.log('stderr: ' + stderr); }
-        if (error !== null) {
-            console.log('exec error: ' + error);
-        }
-    });
-}
+    server.listen( 80, function handleListen () {
+        // initClient( io );
+        console.log( 'web server started on http://rpi-manuel.local' )
+    } );
+};
+
+// function initClient () {
+//     console.log( 'initializing client' );
+//     // add this to silence: > /dev/null 2>&1
+//     exec( 'node client.js', function handleExec ( error, stdout, stderr ) {
+//         if (stdout !== null) { console.log('stdout: ' + stdout); }
+//         if (stdout !== null) { console.log('stderr: ' + stderr); }
+//         if (error !== null) {
+//             console.log( 'exec error: ' + error );
+//         }
+//     } );
+// };
 
 // When any client connects
 io.sockets.on( 'connection', function handleConnection ( socket ) {
     console.log( 'client connected' );
+
     // Emit defaults back to the specific connecting client
-    stateModel[segmentKeyName] = segmentValue;
-    stateModel[segmentCountKeyName] = segmentMaxValue;
-    Lights.segmentHighlight( LEDColor, segmentMaxValue, 2, numOfLEDs );
+    stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] = activeSegments;
+    stateModel[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = availableSegmentCount;
+    segmentHighlight( 2 );
     // emit back to the client
-    socket.emit( controlEventName, stateModel );
+    socket.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
-    socket.on( controlEventName, function handleColor ( stateModel ) {
-        console.log( controlEventName, stateModel );
-
-        segmentValue = stateModel[segmentKeyName];
+    socket.on( Config.kCONTROL_EVENT_KEYNAME, function handleColor ( stateModel ) {
+        console.log( Config.kCONTROL_EVENT_KEYNAME, stateModel );
+        activeSegments = stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ];
 
         // Emits the current state to all clients
-        socket.broadcast.emit( controlEventName, stateModel );
+        socket.broadcast.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
-        Lights.segmentHighlight( LEDColor, segmentMaxValue, segmentValue, numOfLEDs );
-    });
-});
-
-// var debugInterval = setInterval( function iterateControl () {
-//     segmentValue = (segmentValue >= segmentMaxValue) ? 0 : segmentValue + 1;
-    
-//     console.log(segmentValue);
-
-//     io.sockets.emit( controlEventName, segmentValue );
-// }, 1000 );
-
-// clearTimeout(debugInterval);
-
-// parse control events
-
+        segmentHighlight( activeSegments );
+    } );
+} );
