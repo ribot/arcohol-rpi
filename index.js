@@ -10,12 +10,11 @@ var server,
     io,
     stateModel = function stateModelConstructor () {
         var model = {};
-        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = Config.kLED_TOTAL_COUNT;
+        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = Config.kDEFAULT_ACTIVE_SEGMENTS;
         model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = Config.kSEGMENT_TOTAL_COUNT;
     
         return model;
-    }(),
-    activeSegments = [ 0 ];
+    }();
 
 initServer();
 
@@ -52,13 +51,15 @@ io.sockets.on( 'connection', function handleConnection ( socket ) {
     // emit back to the client
     socket.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
-    socket.on( Config.kCONTROL_EVENT_KEYNAME, function handleColor ( stateModel ) {
-        console.log( Config.kCONTROL_EVENT_KEYNAME, stateModel );
-        activeSegments = stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ];
+    socket.on( Config.kCONTROL_EVENT_KEYNAME, function handleControlEvent ( clientStateModel ) {
+        console.log( Config.kCONTROL_EVENT_KEYNAME, clientStateModel );
+        // Update the current state from the client
+        stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] = clientStateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ];
 
         // Emits the current state to all clients
         socket.broadcast.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
-        segmentHighlight( activeSegments );
+        // Update highlighted segmetns
+        segmentHighlight( stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] );
     } );
 } );
