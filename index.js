@@ -10,17 +10,12 @@ var server,
     io,
     stateModel = function stateModelConstructor () {
         var model = {};
-        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = activeSegments;
-        model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = availableSegmentCount;
+        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = Config.kLED_TOTAL_COUNT;
+        model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = Config.kSEGMENT_TOTAL_COUNT;
     
         return model;
     }(),
-    activeSegments = [ 0 ],
-    // Number of available options, each corresponds to a segment
-    availableSegmentCount = 9,
-    // Total LED count on all connected strips
-    totalLEDCount = 64,
-    segmentLEDCount = Math.floor( 64 / 9 );
+    activeSegments = [ 0 ];
 
 initServer();
 
@@ -53,9 +48,7 @@ io.sockets.on( 'connection', function handleConnection ( socket ) {
     console.log( 'client connected' );
 
     // Emit defaults back to the specific connecting client
-    stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] = activeSegments;
-    stateModel[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = availableSegmentCount;
-    segmentHighlight( 2 );
+    segmentHighlight( stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] );
     // emit back to the client
     socket.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
