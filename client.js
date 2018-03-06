@@ -1,6 +1,6 @@
 var ws281x = require( 'rpi-ws281x-native' ),
 	http = require( 'http' ),
-	Config = require( './configj.s' ),
+	Config = require( './config.js' ),
 	segmentHighlight = require( './segmentHighlight' ),
 	socket = require( 'socket.io-client' );
 
@@ -8,9 +8,7 @@ var ws281x = require( 'rpi-ws281x-native' ),
 // socket.on('event', function(data){});
 // socket.on('disconnect', function(){});
 
-var segments,
-	segmentSet,
-	NUM_LEDS = 10;
+var segments, segmentSet, NUM_LEDS = 10;
 
 initClient();
 
@@ -34,3 +32,4 @@ function initClient () {
 
 	console.log( 'client initialized' );
 }
+

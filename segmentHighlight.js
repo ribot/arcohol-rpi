@@ -10,13 +10,18 @@ var segmentHighlight = function setSegmentHighlight ( segmentArray ) {
 
     // Init
     var pixelData = new Uint32Array(Config.kLED_TOTAL_COUNT);
+    for ( var i = 0; i < Config.kLED_TOTAL_COUNT; i++ ) {
+        pixelData[ i ] = 0;
+    }
     ws281x.init( Config.kLED_TOTAL_COUNT );
 
     var createSegment = function ( range, segmentNumber, pixelData, hexColor ) {
-        var rgbColor = parseInt( hexColor, 16 );
-        var startPosition = range * segmentNumber;
-        for ( var i = 0; i < range; i++ ) {
-            pixelData[ startPosition + i ] = rgbColor;
+	if (segmentNumber >= 0) { 
+            var rgbColor = parseInt( hexColor, 16 );
+            var startPosition = range * segmentNumber;
+            for ( var i = 0; i < range; i++ ) {
+                pixelData[ startPosition + i ] = rgbColor;
+            }
         }
     }
 

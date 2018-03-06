@@ -1,1 +1,32 @@
-hello
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <title>LED Controller</title>
+    <script src="socket.io/socket.io.js"></script>
+    <style>
+        code {
+            background-color: #f2f2f2;
+        }    
+    </style>
+  </head>
+  <body>
+    
+    <button class="" onmousedown="mouseDown()" onmouseup="mouseUp()">Test Lights Sections (1,3)->(0)</button> 
+    <p>In the console you can type <code>socket.emit('control', { "segmentSet": [4,8,11] });</code> to further test the lights</p>
+
+    <script type="text/javascript">
+        var socket = io.connect();
+        
+        socket.on('control', function (data) {
+            console.log(data);
+        });
+        
+        function mouseDown(){    
+            socket.emit('control', { "segmentSet": [1,3] });
+        }
+        function mouseUp(){
+            socket.emit('control', { "segmentSet": [0] });
+        }
+    </script>
+  </body>
+</html>

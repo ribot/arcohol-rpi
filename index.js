@@ -6,15 +6,15 @@ var http = require( 'http' ),
     segmentHighlight = require( './segmentHighlight' ),
     app = express();
 
-var server,
-    io,
-    stateModel = function stateModelConstructor () {
-        var model = {};
-        model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = Config.kDEFAULT_ACTIVE_SEGMENTS;
-        model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = Config.kSEGMENT_TOTAL_COUNT;
+var server, io;
+
+var stateModel = function stateModelConstructor () {
+    var model = {};
+    model[ Config.kACTIVE_SEGMENTS_KEYNAME ] = Config.kDEFAULT_ACTIVE_SEGMENTS;
+    model[ Config.kAVAILABLE_SEGMENTS_KEYNAME ] = Config.kSEGMENT_TOTAL_COUNT;
     
-        return model;
-    }();
+    return model;
+}();
 
 initServer();
 
@@ -26,8 +26,11 @@ function initServer () {
 
     server.listen( 80, function handleListen () {
         // initClient( io );
-        console.log( 'web server started on http://rpi-manuel.local' )
+        console.log( "web server started on " + Config.kSERVER_URL )
     } );
+
+    //tell the server that ./public/ contains the static webpages
+    app.use(express.static('public'));
 };
 
 // function initClient () {
@@ -58,6 +61,7 @@ io.sockets.on( 'connection', function handleConnection ( socket ) {
 
         // Emits the current state to all clients
         socket.broadcast.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
+        //socket.emit( Config.kCONTROL_EVENT_KEYNAME, stateModel );
 
         // Update highlighted segmetns
         segmentHighlight( stateModel[ Config.kACTIVE_SEGMENTS_KEYNAME ] );
